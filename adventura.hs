@@ -27,13 +27,15 @@ revolver = Weapon 40 0.9 "Revolver"
 
 blockSword = Weapon 30 0.9 "Block Sword"
 pistol = Weapon 30 0.9 "Pistol"
+bow=Weapon 40 0.5 "Bow"
+
 fists = Weapon 20 1 "Fists"
 
 weakEnemies=[parademon,goblin,tinyMinotaur]
 strongEnemies=[apokoliptian,orc,largeMinotaur]
 bosses=[darkGod,warboss,minotaurKing]
 
-weakWeapons=[blockSword,pistol,fists]
+weakWeapons=[blockSword,pistol,bow]
 mediocreWeapons=[swordOfAwesome,rocketLauncher,revolver]
 strongWeapons=[bfg,highlander,loic]
 
@@ -66,3 +68,24 @@ generatePath difficultyLevel generator
   |difficultyLevel<=1 = generateEasyPath generator
   |difficultyLevel==2 = generateModeratePath generator
   |otherwise = generateHardPath generator
+
+determineDifficulty :: (Num a1, Num a, Ord a1) => a1 -> a
+determineDifficulty index
+  |index<=3 = 1
+  |index>3&&index<=8 = 2
+  |otherwise = 3
+
+generateNumPaths :: Int -> StdGen -> [Int]
+generateNumPaths n generator=take n $ randomRs (1,3) generator :: [Int]
+
+generatePaths::StdGen->Int->[Int]->[[Path]]
+generatePaths generator difficultyLevel listOfNumPaths=[[generatePath difficultyLevel generator |y<-[1..x]]|x<-listOfNumPaths]
+
+generateLabyrinth :: StdGen -> Labyrinth
+generateLabyrinth generator =
+  let numEasyPaths = generateNumPaths 4 generator
+      easyPaths=generatePaths generator 1 numEasyPaths
+      numMediumPaths=generateNumPaths 5 generator
+      mediumPaths=generatePaths generator 2 numMediumPaths
+      hardPaths=[[generateHardPath generator]]
+  in easyPaths++mediumPaths++hardPaths
