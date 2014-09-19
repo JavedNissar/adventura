@@ -1,4 +1,5 @@
 import System.Random
+import Control.Monad.Random
 
 data Weapon = Weapon {weaponDamage :: Int, weaponHitChance :: Float, weaponName :: String } deriving (Show)
 data Enemy = Enemy {healthpoints :: Int,enemyDamage :: Int,enemyHitChance:: Float, rewardScore:: Int, enemyName :: String} deriving (Show)
@@ -38,10 +39,6 @@ bosses=[darkGod,warboss,minotaurKing]
 weakWeapons=[blockSword,pistol,bow]
 mediocreWeapons=[swordOfAwesome,rocketLauncher,revolver]
 strongWeapons=[bfg,highlander,loic]
-
---weightedList :: RandomGen g => g -> [(a, Rational)] -> [a]
---weightedList gen weights = evalRand m gen
---    where m = sequence . repeat . fromList $ weights
 
 generateListOfRandomInts :: RandomGen g => g -> Int -> (Int, Int) -> [Int]
 generateListOfRandomInts generator number range = take number $ randomRs range generator :: [Int]
@@ -89,3 +86,22 @@ generateLabyrinth generator =
       mediumPaths=generatePaths generator 2 numMediumPaths
       hardPaths=[[generateHardPath generator]]
   in easyPaths++mediumPaths++hardPaths
+
+generateCombatResult :: MonadRandom m => Rational -> m Bool
+generateCombatResult weaponHitChance = fromList [(True,weaponHitChance),(False,1-weaponHitChance)]
+
+main = do
+  gen<-getStdGen
+  let labyrinth=generateLabyrinth gen
+  play 0 [1..10]
+
+play:: Int->[a]->IO ()
+play index labyrinth = do
+  if (length labyrinth)-1==index
+    then putStrLn "Amazing! You finished Adventura"
+    else do
+      let newIndex=choosePath labyrinth index
+      putStrLn $ show newIndex
+      play newIndex labyrinth
+
+choosePath labyrinth index = index+1
