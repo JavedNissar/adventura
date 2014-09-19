@@ -3,6 +3,7 @@ import Control.Monad.Random
 
 data Weapon = Weapon {weaponDamage :: Int, weaponHitChance :: Float, weaponName :: String } deriving (Show)
 data Enemy = Enemy {healthpoints :: Int,enemyDamage :: Int,enemyHitChance:: Float, rewardScore:: Int, enemyName :: String} deriving (Show)
+data Hero = Hero{heroHealthPoints :: Int,currentWeapon :: Weapon} deriving (Show)
 data Path = Path {enemies:: [Enemy],rewardWeapon :: Weapon} deriving (Show)
 type Labyrinth = [[Path]]
 
@@ -66,12 +67,6 @@ generatePath difficultyLevel generator
   |difficultyLevel==2 = generateModeratePath generator
   |otherwise = generateHardPath generator
 
-determineDifficulty :: (Num a1, Num a, Ord a1) => a1 -> a
-determineDifficulty index
-  |index<=3 = 1
-  |index>3&&index<=8 = 2
-  |otherwise = 3
-
 generateNumPaths :: Int -> StdGen -> [Int]
 generateNumPaths n generator=take n $ randomRs (1,3) generator :: [Int]
 
@@ -93,15 +88,17 @@ generateCombatResult weaponHitChance = fromList [(True,weaponHitChance),(False,1
 main = do
   gen<-getStdGen
   let labyrinth=generateLabyrinth gen
-  play 0 [1..10]
+      hero=Hero 100 fists
+  play hero 0 labyrinth
 
-play:: Int->[a]->IO ()
-play index labyrinth = do
+play:: Hero->Int->[a]->IO ()
+play hero index labyrinth = do
   if (length labyrinth)-1==index
     then putStrLn "Amazing! You finished Adventura"
     else do
-      let newIndex=choosePath labyrinth index
-      putStrLn $ show newIndex
-      play newIndex labyrinth
+      choosePath labyrinth index
+      putStrLn $ show (index+1)
+      play hero (index+1) labyrinth
 
-choosePath labyrinth index = index+1
+choosePath labyrinth index = do
+  putStrLn "Hey there!"
