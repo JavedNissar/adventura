@@ -1,8 +1,9 @@
 import System.Random
+import Data.List
 import Control.Monad.Random
 
 data Weapon = Weapon {weaponDamage :: Int, weaponHitChance :: Float, weaponName :: String } deriving (Show)
-data Enemy = Enemy {healthpoints :: Int,enemyDamage :: Int,enemyHitChance:: Float, rewardScore:: Int, enemyName :: String} deriving (Show)
+data Enemy = Enemy {healthpoints :: Int,enemyDamage :: Int,enemyHitChance:: Float, rewardScore:: Int, enemyName :: String} deriving (Show,Eq)
 data Hero = Hero{heroHealthPoints :: Int,currentWeapon :: Weapon} deriving (Show)
 data Path = Path {enemies:: [Enemy],rewardWeapon :: Weapon} deriving (Show)
 type Labyrinth = [[Path]]
@@ -67,17 +68,17 @@ generatePath difficultyLevel generator
   |difficultyLevel==2 = generateModeratePath generator
   |otherwise = generateHardPath generator
 
-generateNumPaths :: Int -> StdGen -> [Int]
-generateNumPaths n generator=take n $ randomRs (1,3) generator :: [Int]
+generateNumberOfPaths :: Int -> StdGen -> [Int]
+generateNumberOfPaths n generator=take n $ randomRs (1,3) generator :: [Int]
 
 generatePaths::StdGen->Int->[Int]->[[Path]]
 generatePaths generator difficultyLevel listOfNumPaths=[[generatePath difficultyLevel generator |y<-[1..x]]|x<-listOfNumPaths]
 
 generateLabyrinth :: StdGen -> Labyrinth
 generateLabyrinth generator =
-  let numEasyPaths = generateNumPaths 4 generator
+  let numEasyPaths = generateNumberOfPaths 4 generator
       easyPaths=generatePaths generator 1 numEasyPaths
-      numMediumPaths=generateNumPaths 5 generator
+      numMediumPaths=generateNumberOfPaths 5 generator
       mediumPaths=generatePaths generator 2 numMediumPaths
       hardPaths=[[generateHardPath generator]]
   in easyPaths++mediumPaths++hardPaths
@@ -85,20 +86,75 @@ generateLabyrinth generator =
 generateCombatResult :: MonadRandom m => Rational -> m Bool
 generateCombatResult weaponHitChance = fromList [(True,weaponHitChance),(False,1-weaponHitChance)]
 
+generateDescriptionOfPossiblePaths n
+  |n==1 = "path"
+  |2==n = "first path, or second path"
+  |otherwise = " first path, second path, or third path"
+
+describePathChosen n
+ |n==1 = "1st"
+ |n==2 = "2nd"
+ |otherwise = "3rd"
+
+numberOfEnemies enemiesList possibleEnemy=length $ filter (==possibleEnemy) enemiesList
+
+convertBooleanToInteger :: Bool->Int
+convertBooleanToInteger bool=if True==bool then 1 else 0
+
+descriptionOfNumberOfEnemies :: Int->String->String
+descriptionOfNumberOfEnemies number enemyType
+  |number>1=(show number)++" "++enemyType++"s"
+  |number==1=(show number)++" "++enemyType
+  |number<=0=""
+
+descriptionOfEnemiesInPath paths index=
+  let enemiesPresent=(enemies (paths!!index))
+      descriptionOfGoblins=descriptionOfNumberOfEnemies (numberOfEnemies enemiesPresent goblin) (enemyName goblin)
+      descriptionOfParademons=descriptionOfNumberOfEnemies (numberOfEnemies enemiesPresent parademon) (enemyName parademon)
+      descriptionOfTinyMinotaurs=descriptionOfNumberOfEnemies (numberOfEnemies enemiesPresent tinyMinotaur) (enemyName tinyMinotaur)
+      descriptionOfApokoliptians=descriptionOfNumberOfEnemies (numberOfEnemies enemiesPresent apokoliptian) (enemyName apokoliptian)
+      descriptionOfOrcs=descriptionOfNumberOfEnemies (numberOfEnemies enemiesPresent orc) (enemyName orc)
+      descriptionOfLargeMinotaurs=descriptionOfNumberOfEnemies (numberOfEnemies enemiesPresent largeMinotaur) (enemyName largeMinotaur)
+      isDarkGod=descriptionOfNumberOfEnemies (convertBooleanToInteger $ any (==darkGod) enemiesPresent) (enemyName darkGod)
+      isMinotaurKing=descriptionOfNumberOfEnemies (convertBooleanToInteger $ any (==minotaurKing) enemiesPresent) (enemyName minotaurKing)
+      isWarBoss=descriptionOfNumberOfEnemies (convertBooleanToInteger $ any (==warboss) enemiesPresent) (enemyName warboss)
+  in descriptionOfGoblins++descriptionOfParademons++descriptionOfTinyMinotaurs++descriptionOfApokoliptians++descriptionOfOrcs++descriptionOfLargeMinotaurs++isDarkGod++isMinotaurKing++isWarBoss
+
 main = do
   gen<-getStdGen
   let labyrinth=generateLabyrinth gen
       hero=Hero 100 fists
   play hero 0 labyrinth
 
-play:: Hero->Int->[a]->IO ()
+play:: Hero->Int->Labyrinth->IO ()
 play hero index labyrinth = do
-  if (length labyrinth)-1==index
+  if (length labyrinth)==index
     then putStrLn "Amazing! You finished Adventura"
     else do
       choosePath labyrinth index
       putStrLn $ show (index+1)
       play hero (index+1) labyrinth
 
+printOutPathDescriptions paths= do
+  if length paths>=3
+    then do
+      putStrLn $ "Path 1 has "++descriptionOfEnemiesInPath paths 0
+      putStrLn $ "Path 2 has "++descriptionOfEnemiesInPath paths 1
+      putStrLn $ "Path 3 has "++descriptionOfEnemiesInPath paths 2
+    else do
+      if length paths>=2
+        then do
+          putStrLn $ "Path 1 has "++descriptionOfEnemiesInPath paths 0
+          putStrLn $ "Path 2 has "++descriptionOfEnemiesInPath paths 1
+      else do
+        putStrLn $ "The path has "++descriptionOfEnemiesInPath paths 0
+
+choosePath :: Labyrinth->Int->IO ()
 choosePath labyrinth index = do
-  putStrLn "Hey there!"
+  let paths=labyrinth!!index
+  putStrLn $ "You have "++(show $ length paths)++" to choose from"
+  printOutPathDescriptions paths
+--putStrLn $ "Type "++intercalate ", " [show x|x<-[1..(length paths)]++" to go on the "++generateDescriptionOfPossiblePaths (length paths)
+--numberAsString<-getLine
+--let number=read numberAsString
+--putStrLn "You have entered the "++(show $ describePathChosen number)++" path"
