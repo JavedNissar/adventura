@@ -71,16 +71,20 @@ generatePath difficultyLevel generator
 generateNumberOfPaths :: Int -> StdGen -> [Int]
 generateNumberOfPaths n generator=take n $ randomRs (1,3) generator :: [Int]
 
-generatePaths::StdGen->Int->[Int]->[[Path]]
-generatePaths generator difficultyLevel listOfNumPaths=[[generatePath difficultyLevel generator |y<-[1..x]]|x<-listOfNumPaths]
+generatePaths::[StdGen]->Int->[Int]->[[Path]]
+generatePaths generators difficultyLevel listOfNumPaths=
+  let randoms=take 200 $ randomRs (0,(length generators)-1) (generators!!0) :: [Int]
+      randomGenerators=map (generators!!) randoms
+      numPathsWithIndexes=zip listOfNumPaths [0..(length listOfNumPaths)-1]
+  in [[generatePath difficultyLevel (randomGenerators!!((snd x)+y)) |y<-[0..(fst x)-1]]|x<-numPathsWithIndexes]
 
-generateLabyrinth :: StdGen -> Labyrinth
-generateLabyrinth generator =
-  let numEasyPaths = generateNumberOfPaths 4 generator
-      easyPaths=generatePaths generator 1 numEasyPaths
-      numMediumPaths=generateNumberOfPaths 5 generator
-      mediumPaths=generatePaths generator 2 numMediumPaths
-      hardPaths=[[generateHardPath generator]]
+generateLabyrinth :: [StdGen] -> Labyrinth
+generateLabyrinth gens =
+  let numEasyPaths = generateNumberOfPaths 4 (gens!!0)
+      easyPaths=generatePaths gens 1 numEasyPaths
+      numMediumPaths=generateNumberOfPaths 5 (gens!!1)
+      mediumPaths=generatePaths gens 2 numMediumPaths
+      hardPaths=[[generateHardPath (gens!!2)]]
   in easyPaths++mediumPaths++hardPaths
 
 generateCombatResult :: MonadRandom m => Rational -> m Bool
@@ -103,8 +107,8 @@ convertBooleanToInteger bool=if True==bool then 1 else 0
 
 descriptionOfNumberOfEnemies :: Int->String->String
 descriptionOfNumberOfEnemies number enemyType
-  |number>1=(show number)++" "++enemyType++"s"
-  |number==1=(show number)++" "++enemyType
+  |number>1=(show number)++" "++enemyType++"s,"
+  |number==1=(show number)++" "++enemyType++","
   |number<=0=""
 
 descriptionOfEnemiesInPath paths index=
@@ -122,7 +126,12 @@ descriptionOfEnemiesInPath paths index=
 
 main = do
   gen<-getStdGen
-  let labyrinth=generateLabyrinth gen
+  gen2<-newStdGen
+  gen3<-newStdGen
+  gen4<-newStdGen
+  gen5<-newStdGen
+  let gens=[gen,gen2,gen3,gen4,gen5]
+      labyrinth=generateLabyrinth gens
       hero=Hero 100 fists
   play hero 0 labyrinth
 
