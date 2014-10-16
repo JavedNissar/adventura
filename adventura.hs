@@ -100,29 +100,35 @@ describePathChosen n
  |n==2 = "2nd"
  |otherwise = "3rd"
 
+--numberOfEnemies::[Enemy]->String->Int
 numberOfEnemies enemiesList possibleEnemy=length $ filter (==possibleEnemy) enemiesList
 
 convertBooleanToInteger :: Bool->Int
 convertBooleanToInteger bool=if True==bool then 1 else 0
 
-descriptionOfNumberOfEnemies :: Int->String->String
-descriptionOfNumberOfEnemies number enemyType
-  |number>1=(show number)++" "++enemyType++"s,"
-  |number==1=(show number)++" "++enemyType++","
-  |number<=0=""
+createDescriptionOfEnemy::(String,Int)->String
+createDescriptionOfEnemy enemyTuple
+  |(1==snd enemyTuple)=(show $ snd enemyTuple)++" "++(fst enemyTuple)
+  |otherwise=(show $ snd enemyTuple)++" "++(fst enemyTuple)++"s"
 
+descriptionOfEnemiesInPath :: [Path]->Int->String
 descriptionOfEnemiesInPath paths index=
   let enemiesPresent=(enemies (paths!!index))
-      descriptionOfGoblins=descriptionOfNumberOfEnemies (numberOfEnemies enemiesPresent goblin) (enemyName goblin)
-      descriptionOfParademons=descriptionOfNumberOfEnemies (numberOfEnemies enemiesPresent parademon) (enemyName parademon)
-      descriptionOfTinyMinotaurs=descriptionOfNumberOfEnemies (numberOfEnemies enemiesPresent tinyMinotaur) (enemyName tinyMinotaur)
-      descriptionOfApokoliptians=descriptionOfNumberOfEnemies (numberOfEnemies enemiesPresent apokoliptian) (enemyName apokoliptian)
-      descriptionOfOrcs=descriptionOfNumberOfEnemies (numberOfEnemies enemiesPresent orc) (enemyName orc)
-      descriptionOfLargeMinotaurs=descriptionOfNumberOfEnemies (numberOfEnemies enemiesPresent largeMinotaur) (enemyName largeMinotaur)
-      isDarkGod=descriptionOfNumberOfEnemies (convertBooleanToInteger $ any (==darkGod) enemiesPresent) (enemyName darkGod)
-      isMinotaurKing=descriptionOfNumberOfEnemies (convertBooleanToInteger $ any (==minotaurKing) enemiesPresent) (enemyName minotaurKing)
-      isWarBoss=descriptionOfNumberOfEnemies (convertBooleanToInteger $ any (==warboss) enemiesPresent) (enemyName warboss)
-  in descriptionOfGoblins++descriptionOfParademons++descriptionOfTinyMinotaurs++descriptionOfApokoliptians++descriptionOfOrcs++descriptionOfLargeMinotaurs++isDarkGod++isMinotaurKing++isWarBoss
+      numGoblins=((enemyName goblin),(numberOfEnemies enemiesPresent goblin))
+      numParademons=((enemyName parademon),(numberOfEnemies enemiesPresent parademon))
+      numTinyMinotaurs=((enemyName tinyMinotaur),(numberOfEnemies enemiesPresent tinyMinotaur))
+      numApokoliptians=((enemyName apokoliptian),(numberOfEnemies enemiesPresent apokoliptian))
+      numOrcs=((enemyName orc),(numberOfEnemies enemiesPresent orc))
+      numLargeMinotaurs=((enemyName largeMinotaur),(numberOfEnemies enemiesPresent largeMinotaur))
+      numDarkGods=((enemyName darkGod),(numberOfEnemies enemiesPresent darkGod))
+      numMinotaurKings=((enemyName minotaurKing),(numberOfEnemies enemiesPresent minotaurKing))
+      numWarbosses=((enemyName warboss),(numberOfEnemies enemiesPresent warboss))
+      enemyNumbers=[numGoblins,numParademons,numTinyMinotaurs,numApokoliptians
+                    ,numOrcs,numLargeMinotaurs,numDarkGods,numMinotaurKings,numWarbosses]
+      filteredEnemyNumbers=filter (\x->(snd x)>0) enemyNumbers
+      enemyListAsString=(intercalate ",") $ map createDescriptionOfEnemy (init filteredEnemyNumbers)
+  in if (length enemyListAsString>0) then enemyListAsString++" and "++(createDescriptionOfEnemy (last filteredEnemyNumbers))
+    else createDescriptionOfEnemy (last filteredEnemyNumbers)
 
 main = do
   gen<-getStdGen
@@ -144,6 +150,7 @@ play hero index labyrinth = do
       putStrLn $ show (index+1)
       play hero (index+1) labyrinth
 
+printOutPathDescriptions :: [Path] -> IO ()
 printOutPathDescriptions paths= do
   if length paths>=3
     then do
