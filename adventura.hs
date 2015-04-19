@@ -90,17 +90,19 @@ generateLabyrinth gens =
 generateCombatResult :: MonadRandom m => Rational -> m Bool
 generateCombatResult weaponHitChance = fromList [(True,weaponHitChance),(False,1-weaponHitChance)]
 
+generateDescriptionOfPossiblePaths::Int->String
 generateDescriptionOfPossiblePaths n
   |n==1 = "path"
   |2==n = "first path, or second path"
   |otherwise = " first path, second path, or third path"
 
+describePathChosen::Integer->String
 describePathChosen n
  |n==1 = "1st"
  |n==2 = "2nd"
  |otherwise = "3rd"
 
---numberOfEnemies::[Enemy]->String->Int
+--numberOfEnemies::[Enemy]->Enemy->Int
 numberOfEnemies enemiesList possibleEnemy=length $ filter (==possibleEnemy) enemiesList
 
 convertBooleanToInteger :: Bool->Int
@@ -165,12 +167,16 @@ printOutPathDescriptions paths= do
       else do
         putStrLn $ "The path has "++descriptionOfEnemiesInPath paths 0
 
+describePathCount::Int->String
+describePathCount n=intercalate ", " [show x|x<-[1..n]]
+
 choosePath :: Labyrinth->Int->IO ()
 choosePath labyrinth index = do
   let paths=labyrinth!!index
   putStrLn $ "You have "++(show $ length paths)++" to choose from"
   printOutPathDescriptions paths
---putStrLn $ "Type "++intercalate ", " [show x|x<-[1..(length paths)]++" to go on the "++generateDescriptionOfPossiblePaths (length paths)
---numberAsString<-getLine
---let number=read numberAsString
---putStrLn "You have entered the "++(show $ describePathChosen number)++" path"
+
+  putStrLn ("Type "++(describePathCount (length paths))++" to go on the "++(generateDescriptionOfPossiblePaths (length paths)))
+  numberAsString<-getLine
+  let number=read numberAsString
+  putStrLn ("You have entered the "++(describePathChosen number)++" path")
