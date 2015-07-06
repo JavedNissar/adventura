@@ -41,10 +41,15 @@ play hero index labyrinth gens = do
   if (length labyrinth)==index
     then putStrLn "Amazing! You finished Adventura."
     else do
+      putStrLn "You see some new paths"
       path<-choosePath labyrinth index
-      changedHero<-return hero
-      play changedHero (index+1) labyrinth gens
-
+      putStrLn "And the fight begins"
+      let possiblyDeadHero=fight hero path gens
+      if possiblyDeadHero==Nothing then putStrLn "Oh no! You died."
+      else do
+        putStrLn "You won!"
+        let Just changedHero=possiblyDeadHero
+        play changedHero (index+1) labyrinth gens
 
 main = do
   gen<-getStdGen

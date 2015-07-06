@@ -7,7 +7,7 @@ module Weapons
   ,strongWeapons
 ) where
 
-data Weapon = Weapon {weaponDamage:: Int,weaponHitChance :: Float, weaponName :: String } deriving (Show)
+data Weapon = Weapon {weaponDamage:: Int,weaponHitChance :: Float, weaponName :: String } deriving (Show,Eq)
 
 bfg = Weapon 100 0.9 "BFG"
 highlander = Weapon 100 0.9 "Highlander"

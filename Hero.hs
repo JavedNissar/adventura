@@ -7,7 +7,7 @@ module Hero
 ) where
 
 import Weapons
-data Hero = Hero{heroHealthPoints :: Int,currentWeapon :: Weapon} deriving (Show)
+data Hero = Hero{heroHealthPoints :: Int,currentWeapon :: Weapon} deriving (Show,Eq)
 
 deductHealth::Hero->Int->Hero
 deductHealth hero deduction=Hero ((heroHealthPoints hero)-deduction) (currentWeapon hero)
