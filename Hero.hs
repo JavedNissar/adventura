@@ -3,6 +3,7 @@ module Hero
   Hero(..)
   ,deductHealth
   ,changeWeapon
+  ,heroIsDead
 ) where
 
 import Weapons
@@ -13,3 +14,6 @@ deductHealth hero deduction=Hero ((heroHealthPoints hero)-deduction) (currentWea
 
 changeWeapon::Hero->Weapon->Hero
 changeWeapon hero newWeapon=Hero (heroHealthPoints hero) newWeapon
+
+heroIsDead::Hero->Bool
+heroIsDead hero=(heroHealthPoints hero)<=0

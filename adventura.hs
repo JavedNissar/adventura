@@ -4,43 +4,51 @@ import Control.Monad.Random
 import Labyrinth
 import Hero
 import Enemies
-import PathUtilities
+import Utilities
 import Weapons
 
 
-generateCombatResult :: MonadRandom m => Rational -> m Bool
-generateCombatResult weaponHitChance = fromList [(True,weaponHitChance),(False,1-weaponHitChance)]
+generateWeaponHit:: Float->StdGen->Bool
+generateWeaponHit weaponHitChance gen =
+  let (r,_)=randomR (0,1) gen :: (Float,StdGen)
+  in if r<weaponHitChance then True else False
 
-numberOfEnemies::[Enemy]->Enemy->Int
-numberOfEnemies enemiesList possibleEnemy=length $ filter (==possibleEnemy) enemiesList
-
-convertBooleanToInteger :: Bool->Int
-convertBooleanToInteger bool=if True==bool then 1 else 0
+fightEnemy::Hero->Enemy->[StdGen]->Maybe Hero
+fightEnemy hero enemy gens
+  |heroIsDead heroInAftermath = Nothing
+  |enemyIsDead enemyInAftermath = Just heroInAftermath
+  |otherwise = fightEnemy heroInAftermath enemyInAftermath gens
+  where
+      weaponOfHero=currentWeapon hero
+      (index,_)=randomR (0,length gens) (gens!!0)::(Int,StdGen)
+      genToUse=gens!!index
+      heroHasHit=generateWeaponHit (weaponHitChance $ weaponOfHero) genToUse
+      enemyInAftermath=if heroHasHit then deductHealthFromEnemy enemy (weaponDamage weaponOfHero) else enemy
+      enemyHasHit=if (enemyIsDead enemy) then False else generateWeaponHit (enemyHitChance $ enemy) genToUse
+      heroInAftermath=deductHealth hero (enemyDamage enemy)
 
 createDescriptionOfEnemy::(String,Int)->String
 createDescriptionOfEnemy enemyTuple
   |(1==snd enemyTuple)=(show $ snd enemyTuple)++" "++(fst enemyTuple)
-  |otherwise=(show $ snd enemyTuple)++" "++(fst enemyTuple)++"s"  
+  |otherwise=(show $ snd enemyTuple)++" "++(fst enemyTuple)++"s"
 
-play:: Hero->Int->Labyrinth->IO ()
-play hero index labyrinth = do
+play:: Hero->Int->Labyrinth->[StdGen]->IO ()
+play hero index labyrinth gens = do
   if (length labyrinth)==index
     then putStrLn "Amazing! You finished Adventura."
     else do
-      let path=choosePath labyrinth index
-          changedHero=fight hero labyrinth labyrinthIndex pathIndex
-      in do
-        fight hero labyrinth labyrinthIndex pathIndex
-        play hero (index+1) labyrinth
+      path<-choosePath labyrinth index
+      changedHero<-return hero
+      play changedHero (index+1) labyrinth gens
 
 
-  main = do
-    gen<-getStdGen
-    gen2<-newStdGen
-    gen3<-newStdGen
-    gen4<-newStdGen
-    gen5<-newStdGen
-    let gens=[gen,gen2,gen3,gen4,gen5]
-        labyrinth=generateLabyrinth gens
-        hero=Hero 100 fists
-    play hero 0 labyrinth
+main = do
+  gen<-getStdGen
+  gen2<-newStdGen
+  gen3<-newStdGen
+  gen4<-newStdGen
+  gen5<-newStdGen
+  let gens=[gen,gen2,gen3,gen4,gen5]
+      labyrinth=generateLabyrinth gens
+      hero=Hero 100 fists
+  play hero 0 labyrinth gens
