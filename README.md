@@ -6,4 +6,4 @@ To use this program, just write
 ```Batchfile
 runhaskell adventura.hs
 ```
-in the same folder within Adventura's folder.
+within Adventura's folder.
