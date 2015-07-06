@@ -1,5 +1,6 @@
 import System.Random
 import Data.List
+import Control.Monad
 import Control.Monad.Random
 import Labyrinth
 import Hero
@@ -20,12 +21,15 @@ fightEnemy hero enemy gens
   |otherwise = fightEnemy heroInAftermath enemyInAftermath gens
   where
       weaponOfHero=currentWeapon hero
-      (index,_)=randomR (0,length gens) (gens!!0)::(Int,StdGen)
+      (index,_)=randomR (0,(length gens)-1) (gens!!0)::(Int,StdGen)
       genToUse=gens!!index
       heroHasHit=generateWeaponHit (weaponHitChance $ weaponOfHero) genToUse
       enemyInAftermath=if heroHasHit then deductHealthFromEnemy enemy (weaponDamage weaponOfHero) else enemy
       enemyHasHit=if (enemyIsDead enemy) then False else generateWeaponHit (enemyHitChance $ enemy) genToUse
       heroInAftermath=deductHealth hero (enemyDamage enemy)
+
+fight::Hero->Path->[StdGen]->Maybe Hero
+fight hero path gens=foldM (\changedHero enemy -> fightEnemy changedHero enemy gens) hero (enemies path) >>= (\changedHero -> Just $ changeWeapon changedHero (rewardWeapon path))
 
 createDescriptionOfEnemy::(String,Int)->String
 createDescriptionOfEnemy enemyTuple
