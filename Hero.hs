@@ -1,12 +1,11 @@
-import Weapons
-
 module Hero
 (
-  Hero
+  Hero(..)
   ,deductHealth
   ,changeWeapon
 ) where
 
+import Weapons
 data Hero = Hero{heroHealthPoints :: Int,currentWeapon :: Weapon} deriving (Show)
 
 deductHealth::Hero->Int->Hero

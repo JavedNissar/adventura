@@ -1,6 +1,7 @@
 module Weapons
 (
-  Weapon
+  Weapon(..)
+  ,fists
   ,weakWeapons
   ,mediocreWeapons
   ,strongWeapons

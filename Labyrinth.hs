@@ -1,13 +1,13 @@
-import System.Random
-import Enemies
-import Weapons
-
 module Labyrinth
 (
-  Path
+  Path(..)
   ,Labyrinth
   ,generateLabyrinth
 ) where
+
+import System.Random
+import Enemies
+import Weapons
 
 data Path = Path {enemies:: [Enemy],rewardWeapon :: Weapon} deriving (Show)
 type Labyrinth = [[Path]]
