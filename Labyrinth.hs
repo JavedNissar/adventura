@@ -50,9 +50,9 @@ generatePaths generators difficultyLevel listOfNumPaths=
 
 generateLabyrinth :: [StdGen] -> Labyrinth
 generateLabyrinth gens =
-  let numEasyPaths = generateNumberOfPaths 4 (gens!!0)
+  let numEasyPaths = generateNumberOfPaths 1 (gens!!0)
       easyPaths=generatePaths gens 1 numEasyPaths
-      numMediumPaths=generateNumberOfPaths 5 (gens!!1)
+      numMediumPaths=generateNumberOfPaths 1 (gens!!1)
       mediumPaths=generatePaths gens 2 numMediumPaths
       hardPaths=[[generateHardPath (gens!!2)]]
   in easyPaths++mediumPaths++hardPaths
