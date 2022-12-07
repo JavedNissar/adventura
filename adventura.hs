@@ -1,7 +1,6 @@
 import System.Random
 import Data.List
 import Control.Monad
-import Control.Monad.Random
 import Labyrinth
 import Hero
 import Enemies
